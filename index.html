@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة المدرسة الذكية</title>
+    <!-- استدعاء مكتبة فايربيس النسخة المتوافقة -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --border-color: #334155;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--text-color);
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .requests-list {
+            margin-top: 24px;
+        }
+
+        .request-card {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .request-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: var(--accent-color);
+        }
+
+        .request-card p {
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        .request-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="page-title">بوابة الطلاب - تقديم الطلبات</h1>
+            <button id="mode-switch-btn" class="btn" onclick="toggleAdminMode()">لوحة الإدارة</button>
+        </header>
+
+        <!-- قسم الطالب: نموذج الإرسال -->
+        <div id="student-section">
+            <form id="request-form" onsubmit="submitRequest(event)">
+                <div class="form-group">
+                    <label for="student-name">اسم الطالب الثلاثي:</label>
+                    <input type="text" id="student-name" required placeholder="أدخل اسمك هنا...">
+                </div>
+                <div class="form-group">
+                    <label for="request-text">نص الطلب أو الشكوى:</label>
+                    <textarea id="request-text" required placeholder="اكتب تفاصيل طلبك بوضوح..."></textarea>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">إرسال الطلب</button>
+            </form>
+        </div>
+
+        <!-- قسم الإدارة: عرض الطلبات -->
+        <div id="admin-section" class="hidden">
+            <h2 style="font-size: 1.2rem; margin-bottom: 16px;">طلبات الطلاب الواردة</h2>
+            <div id="requests-container">
+                <p style="text-align: center; color: #64748b;">جاري جلب الطلبات...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تسجيل دخول الإدارة -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 16px; font-size: 1.2rem;">تسجيل دخول الإدارة</h2>
+            <div class="form-group">
+                <label for="admin-pass">كلمة المرور:</label>
+                <input type="password" id="admin-pass" placeholder="أدخل كلمة المرور (123)">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-danger" onclick="closeLoginModal()">إلغاء</button>
+                <button class="btn" onclick="verifyAdmin()">دخول</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // إعدادات الاتصال الخاصة بمشروعك على Firebase (`schoolapp-41263`)
+        const firebaseConfig = {
+            apiKey: "AIzaSy...", // استبدلها بمعلومات مشروعك الفعلي إذا لزم الأمر
+            authDomain: "schoolapp-41263.firebaseapp.com",
+            projectId: "schoolapp-41263",
+            storageBucket: "schoolapp-41263.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        // تهيئة فايربيس
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let isAdmin = false;
+
+        // تبديل الأضعاظ بين الطالب والإدارة
+        function toggleAdminMode() {
+            if (!isAdmin) {
+                document.getElementById('login-modal').classList.remove('hidden');
+            } else {
+                isAdmin = false;
+                document.getElementById('page-titleinnerText').innerText = "بوابة الطلاب - تقديم الطلبات";
+                document.getElementById('mode-switch-btn').innerText = "لوحة الإدارة";
+                document.getElementById('student-section').classList.remove('hidden');
+                document.getElementById('admin-section').classList.add('hidden');
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('admin-pass').value = '';
+        }
+
+        // التحقق من كلمة مرور الإدارة (الكلمة المحددة: 123)
+        function verifyAdmin() {
+            const pass = document.getElementById('admin-pass').value;
+            if (pass === "123") {
+                isAdmin = true;
+                closeLoginModal();
+                document.getElementById('page-title').innerText = "لوحة تحكم الإدارة";
+                document.getElementById('mode-switch-btn').innerText = "خروج";
+                document.getElementById('student-section').classList.add('hidden');
+                document.getElementById('admin-section').classList.remove('hidden');
+                fetchRequests();
+            } else {
+                alert("كلمة المرور غير صحيحة!");
+            }
+        }
+
+        // إرسال طلب جديد إلى Firestore
+        async function submitRequest(e) {
+            e.preventDefault();
+            const name = document.getElementById('student-name').value;
+            const text = document.getElementById('request-text').value;
+
+            try {
+                await db.collection("school_requests").add({
+                    studentName: name,
+                    requestText: text,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("تم إرسال طلبك بنجاح!");
+                document.getElementById('request-form').reset();
+            } catch (error) {
+                console.error("خطأ في الإرسال: ", error);
+                alert("حدث خطأ أثناء الإرسال، تأكد من الاتصال بالإنترنت.");
+            }
+        }
+
+        // جلب الطلبات للإدارة بشكل لحظي (Real-time)
+        function fetchRequests() {
+            const container = document.getElementById('requests-container');
+            
+            db.collection("school_requests").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+                container.innerHTML = "";
+                if (snapshot.empty) {
+                    container.innerHTML = `<p style="text-align: center; color: #64748b;">لا توجد طلبات حتى الآن.</p>`;
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('ar-IQ') : 'جاري الحفظ...';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'request-card';
+                    card.innerHTML = `
+                        <h3>${escapeHtml(data.studentName)}</h3>
+                        <p>${escapeHtml(data.requestText)}</p>
+                        <div class="request-meta">
+                            <span>${date}</span>
+                            <button class="btn btn-danger" style="padding: 2px 8px; font-size: 0.75rem;" onclick="deleteRequest('${doc.id}')">حذف</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+        }
+
+        // حذف طلب من قبل الإدارة
+        async function deleteRequest(id) {
+            if (confirm("هل أنت متأكد من حذف هذا الطلب؟")) {
+                try {
+                    await db.collection("school_requests").doc(id).delete();
+                } catch (error) {
+                    console.error("خطأ في الحذف: ", error);
+                }
+            }
+        }
+
+        // تأمين النصوص ضد الثغرات
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
