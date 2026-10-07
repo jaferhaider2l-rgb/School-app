@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدرسة الهندية الابتدائية للبنين</title>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+        }
+
+        body {
+            font-family: Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .hero-header {
+            background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+            color: white;
+            text-align: center;
+            padding: 35px 20px 45px 20px;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.2);
+            margin-bottom: -25px;
+            position: relative;
+        }
+        .hero-header h1 { font-size: 24px; margin: 0 0 8px 0; cursor: pointer; user-select: none; }
+        .hero-header p { font-size: 13px; margin: 0; opacity: 0.9; }
+
+        .top-btns {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 8px;
+        }
+        .top-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            position: relative;
+        }
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 50%;
+            display: none;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 35px auto 30px auto;
+            padding: 0 16px;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        h2, h3 { color: var(--text-color); font-size: 17px; margin-top: 0; text-align: right; }
+        p { color: var(--text-secondary); font-size: 13px; line-height: 1.6; text-align: right; margin: 0 0 15px 0; }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+        .btn-primary { background-color: #2563eb; }
+        .btn-success { background-color: #10b981; }
+        .btn-warning { background-color: #f59e0b; color: #fff; }
+        .btn-danger { background-color: #ef4444; }
+        .btn-secondary { background-color: #475569; }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 14px;
+            margin-top: 6px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .day-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .day-btn.full-width { grid-column: span 2; }
+        
+        .uploaded-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 12px;
+            margin-top: 12px;
+            background: var(--input-bg);
+        }
+
+        #notifModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div class="hero-header">
+        <div class="top-btns">
+            <button class="top-btn" type="button" onclick="openNotifModal()">🔔 <span id="notifBadge" class="badge">0</span></button>
+            <button class="top-btn" type="button" onclick="toggleTheme()">🌙 الوضع</button>
+        </div>
+        <!-- اضغط 3 مرات بسرعة على العنوان لفتح لوحة الإدارة -->
+        <h1 id="adminTrigger">مدرسة الهندية الابتدائية للبنين</h1>
+        <p>بوابة المعرفة والإبداع • كربلاء المقدسة</p>
+    </div>
+
+<div class="container">
+
+    <!-- الواجهة الرئيسية -->
+    <div id="userView" class="section active">
+        
+        <!-- أوقات الدوام -->
+        <div class="card">
+            <h3 style="text-align:center; color:#2563eb;">⏰ أوقات الدوام الرسمي والاتصال</h3>
+            <p style="text-align: center;">معلومات الدوام الرسمي، أوقات الانصراف، ومواعيد مراجعة أولياء الأمور.</p>
+            <button class="btn btn-primary" type="button" id="timeBtn" onclick="toggleTime()">عرض التفاصيل</button>
+            
+            <div id="timeBox" style="display: none; border-top: 1px solid var(--border-color); margin-top: 15px; padding-top: 12px;">
+                <p style="margin: 0; font-size: 14px; text-align: center;">
+                    • الدوام المدرسي: من الأحد إلى الخميس (يبدأ الطابور 7:30 صباحاً).<br>
+                    • انصراف الطلاب: الساعة 1:00 ظهراً.<br>
+                    • استقبال أولياء الأمور: الثلاثاء والخميس.<br>
+                    • العنوان: كربلاء المقدسة - قضاء الهندية (طويريج).
+                </p>
+            </div>
+        </div>
+
+        <!-- الجداول الدراسية -->
+        <div class="card">
+            <h3 style="text-align:center; color:#2563eb;">📅 الجداول الدراسية (أيام الأسبوع)</h3>
+            <p style="text-align: center;">اضغط على أي يوم من أيام الأسبوع لاستعراض جدول الحصص:</p>
+            
+            <div class="days-grid">
+                <button class="day-btn" type="button" onclick="openSchedule('الأحد')">الأحد</button>
+                <button class="day-btn" type="button" onclick="openSchedule('الإثنين')">الإثنين</button>
+                <button class="day-btn" type="button" onclick="openSchedule('الثلاثاء')">الثلاثاء</button>
+                <button class="day-btn" type="button" onclick="openSchedule('الأربعاء')">الأربعاء</button>
+                <button class="day-btn full-width" type="button" onclick="openSchedule('الخميس')">الخميس</button>
+            </div>
+        </div>
+
+        <!-- لوحة التبليغات -->
+        <div class="card" id="noticeBoard" style="display: none;">
+            <h3 id="displayTitle" style="color: #2563eb;"></h3>
+            <p id="displayBody"></p>
+            <img id="displayImg" class="uploaded-img" src="" alt="صورة التبليغ" style="display:none;">
+        </div>
+
+        <!-- الشكاوى -->
+        <div class="card">
+            <h3>💬 الشكاوى والاقتراحات للطلاب</h3>
+            <input type="text" id="cName" placeholder="اسمك الكريم (اختياري)...">
+            <textarea id="cText" placeholder="اكتب اقتراحك أو شكواك هنا..." rows="3"></textarea>
+            <button class="btn btn-warning" type="button" onclick="sendComplaint()">إرسال الشكوى</button>
+        </div>
+    </div>
+
+    <!-- صفحة الجدول -->
+    <div id="scheduleView" class="section">
+        <div class="card">
+            <h2 id="scheduleDayTitle" style="text-align: center; color: #2563eb;">جدول الحصص</h2>
+            <div id="scheduleContentArea">
+                <p style="text-align:center; color:var(--text-secondary); padding:20px;">لم يتم رفع جدول لهذا اليوم.</p>
+            </div>
+            <button class="btn btn-secondary" type="button" onclick="switchSection('userView')">رجوع للرئيسية</button>
+        </div>
+    </div>
+
+    <!-- تسجيل دخول الإدارة -->
+    <div id="loginView" class="section">
+        <div class="card">
+            <h2>تسجيل دخول الإدارة</h2>
+            <input type="password" id="adminCode" placeholder="أدخل رمز المرور...">
+            <button class="btn btn-primary" type="button" onclick="checkLogin()">دخول</button>
+            <button class="btn btn-secondary" type="button" onclick="switchSection('userView')">رجوع للرئيسية</button>
+            <div id="loginAlert" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 10px; border-radius: 8px; margin-top: 10px; display: none; text-align: center; font-size: 13px;">الرمز غير صحيح! (رمز الإدارة: 2027)</div>
+        </div>
+    </div>
+
+    <!-- لوحة التحكم -->
+    <div id="adminView" class="section">
+        <div class="card">
+            <h2>لوحة التحكم الإدارية</h2>
+            <h3 style="margin-top: 15px;">نشر تبليغ أو إعلام جديد:</h3>
+            <input type="text" id="nTitle" placeholder="عنوان التبليغ...">
+            <textarea id="nBody" placeholder="نص التبليغ..." rows="3"></textarea>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">إرفاق صورة (اختياري):</label>
+            <input type="file" id="nImageFile" accept="image/*" style="padding: 8px;">
+            <button class="btn btn-success" type="button" onclick="publishNotice()">نشر التبليغ الآن</button>
+        </div>
+
+        <div class="card">
+            <h3>📅 رفع وتحديث جداول الحصص</h3>
+            <label style="font-size: 12px; color: var(--text-secondary);">اختر اليوم الدراسي:</label>
+            <select id="schedDaySelect">
+                <option value="الأحد">الأحد</option>
+                <option value="الإثنين">الإثنين</option>
+                <option value="الثلاثاء">الثلاثاء</option>
+                <option value="الأربعاء">الأربعاء</option>
+                <option value="الخميس">الخميس</option>
+            </select>
+            <textarea id="schedText" placeholder="اكتب تفاصيل الحصص أو المواد..." rows="3"></textarea>
+            <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 4px;">صورة الجدول (اختياري):</label>
+            <input type="file" id="schedImgFile" accept="image/*" style="padding: 8px;">
+            <button class="btn btn-primary" type="button" onclick="saveScheduleAdmin()">حفظ ونشر الجدول</button>
+        </div>
+
+        <div class="card">
+            <h3>الشكاوى والمقترحات الواردة</h3>
+            <div id="complaintsListContainer">
+                <p style="text-align: center; color: var(--text-secondary);">لا توجد شكاوى واردة حالياً.</p>
+            </div>
+            <button class="btn btn-danger" type="button" onclick="switchSection('userView')">العودة للواجهة الرئيسية</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- نافذة الإشعارات -->
+<div id="notifModal" onclick="closeNotifModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h3 style="color: #2563eb; text-align: center;">📬 إشعارات الردود</h3>
+        <div id="notifListContainer">
+            <p style="text-align: center; color: var(--text-secondary); font-size: 13px;">لا توجد ردود جديدة حالياً.</p>
+        </div>
+        <button class="btn btn-secondary" type="button" onclick="closeNotifModal('force')" style="margin-top: 15px;">إغلاق</button>
+    </div>
+</div>
+
+<script>
+    let schoolData = JSON.parse(localStorage.getItem('schoolAppData')) || { complaints: [], schedules: {} };
+
+    function saveData() {
+        localStorage.setItem('schoolAppData', JSON.stringify(schoolData));
+    }
+
+    function switchSection(secId) {
+        let sections = document.querySelectorAll('.section');
+        sections.forEach(function(s) {
+            s.classList.remove('active');
+        });
+        let target = document.getElementById(secId);
+        if (target) {
+            target.classList.add('active');
+            window.scrollTo(0, 0);
+        }
+    }
+
+    function toggleTheme() {
+        let body = document.body;
+        let themeBtns = document.querySelectorAll('.top-btn');
+        if (body.getAttribute('data-theme') === 'light') {
+            body.setAttribute('data-theme', 'dark');
+            if(themeBtns[1]) themeBtns[1].innerText = '☀️ الوضع';
+        } else {
+            body.setAttribute('data-theme', 'light');
+            if(themeBtns[1]) themeBtns[1].innerText = '🌙 الوضع';
+        }
+    }
+
+    function toggleTime() {
+        let box = document.getElementById('timeBox');
+        let btn = document.getElementById('timeBtn');
+        if (!box || !btn) return;
+        if (box.style.display === 'none' || box.style.display === '') {
+            box.style.display = 'block';
+            btn.innerText = 'إخفاء التفاصيل';
+        } else {
+            box.style.display = 'none';
+            btn.innerText = 'عرض التفاصيل';
+        }
+    }
+
+    let clickCount = 0;
+    let clickTimer = null;
+    let triggerEl = document.getElementById('adminTrigger');
+    if (triggerEl) {
+        triggerEl.onclick = function() {
+            clickCount++;
+            if (clickTimer) clearTimeout(clickTimer);
+            if (clickCount === 3) {
+                clickCount = 0;
+                switchSection('loginView');
+            } else {
+                clickTimer = setTimeout(function() {
+                    clickCount = 0;
+                }, 1000);
+            }
+        };
+    }
+
+    function checkLogin() {
+        let codeInput = document.getElementById('adminCode');
+        let alertBox = document.getElementById('loginAlert');
+        if (!codeInput || !alertBox) return;
+        
+        if (codeInput.value.trim() === "2027") {
+            codeInput.value = '';
+            alertBox.style.display = 'none';
+            switchSection('adminView');
+            renderComplaints();
+        } else {
+            alertBox.style.display = 'block';
+        }
+    }
+
+    function publishNotice() {
+        let titleInput = document.getElementById('nTitle');
+        let bodyInput = document.getElementById('nBody');
+        let fileInput = document.getElementById('nImageFile');
+        let displayTitle = document.getElementById('displayTitle');
+        let displayBody = document.getElementById('displayBody');
+        let displayImg = document.getElementById('displayImg');
+        let noticeBoard = document.getElementById('noticeBoard');
+
+        if (!titleInput || !titleInput.value.trim()) {
+            alert('يرجى كتابة عنوان التبليغ!');
+            return;
+        }
+
+        displayTitle.innerText = titleInput.value.trim();
+        displayBody.innerText = bodyInput ? bodyInput.value.trim() : '';
+
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                displayImg.src = e.target.result;
+                displayImg.style.display = 'block';
+                noticeBoard.style.display = 'block';
+                alert('تم نشر التبليغ مع الصورة بنجاح!');
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            displayImg.style.display = 'none';
+            noticeBoard.style.display = 'block';
+            alert('تم نشر التبليغ بنجاح!');
+        }
+    }
+
+    function saveScheduleAdmin() {
+        let daySelect = document.getElementById('schedDaySelect');
+        let textInput = document.getElementById('schedText');
+        let fileInput = document.getElementById('schedImgFile');
+        if (!daySelect) return;
+
+        let day = daySelect.value;
+        let text = textInput ? textInput.value.trim() : '';
+
+        if (!schoolData.schedules) schoolData.schedules = {};
+
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                schoolData.schedules[day] = { text: text, img: e.target.result };
+                saveData();
+                alert('تم تحديث جدول يوم ' + day + ' بنجاح!');
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            let oldImg = (schoolData.schedules[day] && schoolData.schedules[day].img) ? schoolData.schedules[day].img : '';
+            schoolData.schedules[day] = { text: text, img: oldImg };
+            saveData();
+            alert('تم تحديث جدول يوم ' + day + ' بنجاح!');
+        }
+    }
+
+    function openSchedule(day) {
+        switchSection('scheduleView');
+        let titleEl = document.getElementById('scheduleDayTitle');
+        let areaEl = document.getElementById('scheduleContentArea');
+        if (titleEl) titleEl.innerText = 'جدول حصص يوم ' + day;
+
+        let sched = schoolData.schedules && schoolData.schedules[day];
+        if (sched && (sched.text || sched.img)) {
+            let html = '<p style="text-align:right; font-size:14px; line-height:1.6;">' + (sched.text || '') + '</p>';
+            if (sched.img) {
+                html += '<img src="' + sched.img + '" class="uploaded-img" alt="جدول الحصص">';
+            }
+            areaEl.innerHTML = html;
+        } else {
+            areaEl.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding:20px;">لم يتم رفع جدول لهذا اليوم بعد.</p>';
+        }
+    }
+
+    function sendComplaint() {
+        let nameInput = document.getElementById('cName');
+        let textInput = document.getElementById('cText');
+        if (!textInput || !textInput.value.trim()) {
+            alert('يرجى كتابة نص الشكوى أو الاقتراح!');
+            return;
+        }
+        let name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : 'طالب مجهول';
+        let text = textInput.value.trim();
+
+        schoolData.complaints.push({ id: Date.now(), name: name, text: text, reply: '', viewed: false });
+        saveData();
+        alert('تم إرسال الشكوى بنجاح!');
+        if (nameInput) nameInput.value = '';
+        if (textInput) textInput.value = '';
+    }
+
+    function openNotifModal() {
+        let modal = document.getElementById('notifModal');
+        if (modal) modal.style.display = 'flex';
+        renderNotifications();
+    }
+
+    function closeNotifModal(event) {
+        let modal = document.getElementById('notifModal');
+        if (event === 'force' || (event && event.target.id === 'notifModal')) {
+            if (modal) modal.style.display = 'none';
+            schoolData.complaints.forEach(function(c) {
+                if (c.reply) c.viewed = true;
+            });
+            saveData();
+            updateBadge();
+        }
+    }
+
+    function updateBadge() {
+        let unreadCount = schoolData.complaints.filter(function(c) { return c.reply && !c.viewed; }).length;
+        let badge = document.getElementById('notifBadge');
+        if (!badge) return;
+        if (unreadCount > 0) {
+            ba
